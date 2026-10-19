@@ -56,20 +56,23 @@ router.post("/", authenticateToken, upload.single("file"), async (req, res) => {
       return res.status(400).json({ error: "Tidak ada file yang dipilih." });
 
     const userId = req.user.id;
-    const originalName = req.file.originalname;
+    const fileName = req.file.originalname;
     const fileSize = req.file.size;
     const mimeType = req.file.mimetype;
+    const filePath = req.file.path || `/uploads/${fileName}`;
 
-    // Simpan data metadata file ke Database TiDB Cloud
+    // Sertakan file_name, original_name, dan file_path untuk menghindari error NULL pada tabel TiDB
     const [result] = await db.query(
-      "INSERT INTO drive_files (user_id, original_name, file_size, mime_type) VALUES (?, ?, ?, ?)",
-      [userId, originalName, fileSize, mimeType],
+      `INSERT INTO drive_files (user_id, file_name, original_name, file_size, mime_type, file_path) 
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [userId, fileName, fileName, fileSize, mimeType, filePath],
     );
 
     res.json({
       message: "File berhasil disimpan!",
       id: result.insertId,
-      original_name: originalName,
+      file_name: fileName,
+      original_name: fileName,
       file_size: fileSize,
     });
   } catch (err) {

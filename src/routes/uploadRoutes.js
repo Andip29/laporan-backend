@@ -2,24 +2,27 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 
-// Memory Storage wajib untuk Serverless Vercel
+// Memory Storage wajib untuk Vercel Serverless
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // Maksimal 10MB
 });
 
-// POST: Accept field 'image' ATAU 'file' dari Frontend
-router.post("/", upload.single("image"), async (req, res) => {
+// POST: Terima file dari FIELD NAMA APA PUN (upload.any)
+router.post("/", upload.any(), async (req, res) => {
   try {
-    if (!req.file) {
+    // Cek apakah ada file yang terunggah
+    if (!req.files || req.files.length === 0) {
       return res
         .status(400)
         .json({ error: "Tidak ada file foto yang diunggah." });
     }
 
+    const uploadedFile = req.files[0]; // Ambil file pertama
+
     // Konversi buffer gambar langsung ke Base64 Data URL
-    const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+    const base64Image = `data:${uploadedFile.mimetype};base64,${uploadedFile.buffer.toString("base64")}`;
 
     res.json({
       message: "Foto berhasil diunggah!",

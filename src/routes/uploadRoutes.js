@@ -10,7 +10,7 @@ const upload = multer({
 });
 
 // POST: Accept field 'image' ATAU 'file' dari Frontend
-router.post("/", upload.single("file"), async (req, res) => {
+router.post("/", upload.single("image"), async (req, res) => {
   try {
     if (!req.file) {
       return res

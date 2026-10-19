@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const jwt = require("jsonwebtoken");
-const db = require("../config/db-laporan-kerja");
+const db = require("../config/database");
 
 // Middleware Verifikasi Token JWT
 const authenticateToken = (req, res, next) => {

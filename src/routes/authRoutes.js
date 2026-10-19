@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const db = require("../config/db-laporan-kerja");
+const db = require("../config/database");
 
 // POST: Register User
 router.post("/register", async (req, res) => {

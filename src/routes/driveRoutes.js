@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const jwt = require("jsonwebtoken");
-const db = require("../config/database"); // Sesuaikan path koneksi database kamu
+const db = require("../config/db-laporan-kerja");
 
 // Middleware Verifikasi Token JWT
 const authenticateToken = (req, res, next) => {
@@ -25,7 +25,7 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// Gunakan Memory Storage (Wajib untuk Vercel Serverless)
+// Memory Storage untuk Vercel Serverless
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
@@ -37,7 +37,7 @@ router.get("/", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const [rows] = await db.query(
-      "SELECT id, original_name, file_size, created_at FROM drive_files WHERE user_id = ? ORDER BY created_at DESC",
+      "SELECT id, original_name, file_name, file_url, file_size, mime_type, created_at FROM drive_files WHERE user_id = ? ORDER BY created_at DESC",
       [userId],
     );
     res.json(rows);
@@ -59,21 +59,22 @@ router.post("/", authenticateToken, upload.single("file"), async (req, res) => {
     const fileName = req.file.originalname;
     const fileSize = req.file.size;
     const mimeType = req.file.mimetype;
-    const filePath = req.file.path || `/uploads/${fileName}`;
+    const fileUrl = `/uploads/${fileName}`; // URL placeholder/simulasi
 
-    // Sertakan file_name, original_name, dan file_path untuk menghindari error NULL pada tabel TiDB
+    // Mengisi seluruh kolom sesuai skema database db-laporan-kerja
     const [result] = await db.query(
-      `INSERT INTO drive_files (user_id, file_name, original_name, file_size, mime_type, file_path) 
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [userId, fileName, fileName, fileSize, mimeType, filePath],
+      "INSERT INTO drive_files (user_id, original_name, file_name, file_url, file_size, mime_type) VALUES (?, ?, ?, ?, ?, ?)",
+      [userId, fileName, fileName, fileUrl, fileSize, mimeType],
     );
 
     res.json({
       message: "File berhasil disimpan!",
       id: result.insertId,
-      file_name: fileName,
       original_name: fileName,
+      file_name: fileName,
+      file_url: fileUrl,
       file_size: fileSize,
+      mime_type: mimeType,
     });
   } catch (err) {
     console.error("Error POST drive:", err);
